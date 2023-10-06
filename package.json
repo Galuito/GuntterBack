@@ -1,0 +1,45 @@
+{
+  "name": "dgback",
+  "version": "1.0.0",
+  "description": "DGBack stands for Diaz-Galue-Backend refering to the name of our \"Programación de Dispositivos Móviles\"'s project DGpad (Digipad).",
+  "main": "index.js",
+  "scripts": {
+    "howToRun": "npm run dev",
+    "start": "node dist/index.js",
+    "dev" : "tsc-watch --onSuccess \"node dist/index.js\" ",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Galuito/DGBack.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Galuito/DGBack/issues"
+  },
+  "homepage": "https://github.com/Galuito/DGBack#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.4",
+    "morgan": "^1.10.0",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cors": "^2.8.14",
+    "@types/express": "^4.17.18",
+    "@types/jsonwebtoken": "^9.0.3",
+    "@types/mongoose": "^5.11.97",
+    "@types/morgan": "^1.9.6",
+    "@types/passport": "^1.0.13",
+    "@types/passport-jwt": "^3.0.10",
+    "tsc-watch": "^6.0.4",
+    "typescript": "^5.2.2"
+  }
+}

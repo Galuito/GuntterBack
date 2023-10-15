@@ -49,6 +49,8 @@ userSchema.pre('save', function (next) {
         const user = this;
         if (!user.isModified('password'))
             return next();
+        // This only executes if there was a change to the password
+        // otherwise, nothing happens and next() is executed
         const salt = yield bcrypt_1.default.genSalt(10);
         const hash = yield bcrypt_1.default.hash(user.password, salt);
         user.password = hash;
@@ -58,6 +60,23 @@ userSchema.pre('save', function (next) {
 userSchema.methods.comparePassword = function (password) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield bcrypt_1.default.compare(password, this.password);
+    });
+};
+userSchema.methods.modifyNames = function (newName, newLastName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        this.name = newName;
+        this.lastName = newLastName;
+        yield this.save();
+        console.log(`User: ${this.username} was modified (names) and saved successfully`);
+        return this.username;
+    });
+};
+userSchema.methods.modifyPassword = function (newPassword) {
+    return __awaiter(this, void 0, void 0, function* () {
+        this.password = newPassword;
+        yield this.save();
+        console.log(`User: ${this.username} was modified (password) and saved successfully`);
+        return this.username;
     });
 };
 exports.default = (0, mongoose_1.model)('User', userSchema);

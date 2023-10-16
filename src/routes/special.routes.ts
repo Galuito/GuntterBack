@@ -35,13 +35,13 @@ router.post('/createnote',passport.authenticate('jwt', {session: false}), create
 router.get('/getfoldernotes',passport.authenticate('jwt', {session: false}), getFolderNotes);
 router.get('/getnofoldernotes',passport.authenticate('jwt', {session: false}), getNoFolderNotes);
 
-router.delete('deletenoteid',passport.authenticate('jwt', {session: false}), deleteNoteById);
-router.delete('deletefoldernotes',passport.authenticate('jwt', {session: false}), deleteFolderNotes);
-router.delete('deleteusernotes',passport.authenticate('jwt', {session: false}), deleteUserNotes);
+router.delete('/deletenoteid',passport.authenticate('jwt', {session: false}), deleteNoteById);
+router.delete('/deletefoldernotes',passport.authenticate('jwt', {session: false}), deleteFolderNotes);
+router.delete('/deleteusernotes',passport.authenticate('jwt', {session: false}), deleteUserNotes);
 
-router.put('modifynotetitle', passport.authenticate('jwt', {session: false}), modifyNoteTitle);
-router.put('modifynotecontent', passport.authenticate('jwt', {session: false}), modifyNoteContent);
-router.put('modifynotefolder', passport.authenticate('jwt', {session: false}), modifyNoteFolder);
-router.put('modifynotecolor', passport.authenticate('jwt', {session: false}), modifyNoteColor);
+router.put('/modifynotetitle', passport.authenticate('jwt', {session: false}), modifyNoteTitle);
+router.put('/modifynotecontent', passport.authenticate('jwt', {session: false}), modifyNoteContent);
+router.put('/modifynotefolder', passport.authenticate('jwt', {session: false}), modifyNoteFolder);
+router.put('/modifynotecolor', passport.authenticate('jwt', {session: false}), modifyNoteColor);
 
 export default router;

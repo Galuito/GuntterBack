@@ -22,9 +22,16 @@ router.post('/createfolder', passport_1.default.authenticate('jwt', { session: f
 router.put('/modifyfoldername', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.changeFolderName);
 router.get('/getuserfolders', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.getUserFolders);
 router.delete('/deletefolder', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.deleteFolder);
-router.delete('/deleteallfolders', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.deleteAllFolders);
+router.delete('/deleteallfolders', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.deleteUserFolders);
 // Note Routes
 router.post('/createnote', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.createNote);
 router.get('/getfoldernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.getFolderNotes);
 router.get('/getnofoldernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.getNoFolderNotes);
+router.delete('deletenoteid', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.deleteNoteById);
+router.delete('deletefoldernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.deleteFolderNotes);
+router.delete('deleteusernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.deleteUserNotes);
+router.put('modifynotetitle', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.modifyNoteTitle);
+router.put('modifynotecontent', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.modifyNoteContent);
+router.put('modifynotefolder', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.modifyNoteFolder);
+router.put('modifynotecolor', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.modifyNoteColor);
 exports.default = router;

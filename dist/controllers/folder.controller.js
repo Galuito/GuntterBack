@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAllFolders = exports.deleteFolder = exports.getUserFolders = exports.changeFolderName = exports.createFolder = void 0;
+exports.deleteUserFolders = exports.deleteFolder = exports.getUserFolders = exports.changeFolderName = exports.createFolder = void 0;
 const folder_1 = __importDefault(require("../models/folder"));
 const user_1 = __importDefault(require("../models/user"));
 const user_idExtractor_1 = require("./user.idExtractor");
@@ -109,7 +109,7 @@ const deleteFolder = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.deleteFolder = deleteFolder;
 // DELETE ALL FOLDERS BY USER ID
-const deleteAllFolders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteUserFolders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _d;
     const authorization = (_d = req.headers) === null || _d === void 0 ? void 0 : _d.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
@@ -120,4 +120,4 @@ const deleteAllFolders = (req, res) => __awaiter(void 0, void 0, void 0, functio
     yield folder_1.default.deleteMany({ folderOwner: userId });
     return res.status(200).json({ msg: `All folders from user ${user.username} were deleted` });
 });
-exports.deleteAllFolders = deleteAllFolders;
+exports.deleteUserFolders = deleteUserFolders;

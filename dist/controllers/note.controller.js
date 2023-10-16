@@ -156,7 +156,7 @@ const modifyNoteContent = (req, res) => __awaiter(void 0, void 0, void 0, functi
         return res.status(400).json({ msg: "No noteId was sent" });
     }
     if (!req.body.newContent) {
-        return res.status(400).json({ msg: "No content was sent" });
+        req.body.newContent = " ";
     }
     const note = yield note_1.default.findOne({ _id: req.body.noteId });
     if (!note) {

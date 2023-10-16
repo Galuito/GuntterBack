@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserData = exports.modifyPassword = exports.modifyNames = exports.deleteUser = exports.signIn = exports.signUp = exports.testerRoute = void 0;
+exports.getUserData = exports.modifyUserPassword = exports.modifyUserNames = exports.deleteUser = exports.signIn = exports.signUp = exports.testerRoute = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../config/config"));
@@ -61,7 +61,7 @@ function extractId(authorization) {
 // Comment this method out once everything is done
 const testerRoute = (req, res) => {
     var _a;
-    // console.log("Received body: ",req.body);
+    console.log("Received body: ", req.body);
     // console.log("Received headers: ",req.headers);
     console.log("Authorization header: ", req.headers.authorization);
     // Use optional chaining to safely access req.headers.authorization
@@ -167,7 +167,7 @@ exports.deleteUser = deleteUser;
  * req.body.newName
  * req.body.newLastName
  */
-const modifyNames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const modifyUserNames = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _b;
     // Checks the authorization header and manages if it were to be undefined
     const authorization = (_b = req.headers) === null || _b === void 0 ? void 0 : _b.authorization;
@@ -201,14 +201,14 @@ const modifyNames = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         return res.status(500).json({ msg: `Something went wrong ${error}` });
     }
 });
-exports.modifyNames = modifyNames;
+exports.modifyUserNames = modifyUserNames;
 // UPDATE USER PASSWORD
 /**
  *
  * Don't you dare pass an empty password
  * req.body.newPassword
  */
-const modifyPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const modifyUserPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _c;
     // Checks the authorization header and manages if it were to be undefined
     const authorization = (_c = req.headers) === null || _c === void 0 ? void 0 : _c.authorization;
@@ -241,7 +241,7 @@ const modifyPassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
         return res.status(500).json({ msg: `Something went wrong ${error}` });
     }
 });
-exports.modifyPassword = modifyPassword;
+exports.modifyUserPassword = modifyUserPassword;
 // READ USER DATA
 const getUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _d;
@@ -257,6 +257,7 @@ const getUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             }
             return res.status(200).json({
                 msg: "User data sent",
+                id: `${user._id}`,
                 username: `${user.username}`,
                 email: `${user.email}`,
                 name: `${user.name}`,

@@ -57,6 +57,7 @@ userSchema.pre('save', function (next) {
         next();
     });
 });
+// User Methods
 userSchema.methods.comparePassword = function (password) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield bcrypt_1.default.compare(password, this.password);

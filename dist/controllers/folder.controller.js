@@ -12,26 +12,118 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createFolder = void 0;
+exports.deleteAllFolders = exports.deleteFolder = exports.getUserFolders = exports.changeFolderName = exports.createFolder = void 0;
 const folder_1 = __importDefault(require("../models/folder"));
 const user_1 = __importDefault(require("../models/user"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+function extractId(authorization) {
+    if (authorization) {
+        // Extracts the JWT from the bearer
+        const receivedJwt = authorization.split(" ")[1];
+        // Decodes the encoded header
+        const decodedToken = jsonwebtoken_1.default.decode(receivedJwt);
+        // Extracts the ID from the decoded token
+        if (decodedToken.id) {
+            // console.log("Correct JWT returning existing userId")
+            return decodedToken.id;
+        }
+        else {
+            console.error('Invalid JWT');
+            return undefined;
+        }
+    }
+    else {
+        console.log("SOMEHOW authorization header is undefined");
+        return undefined;
+    }
+}
+// CREATE FOLDER
 /**
  * req.body must only have:
  * req.body.folderName
- * req.body.folderOwner (ObjectId)
+ * The folder owner is extracted from the Authorization header and is then inserted into a creation JSON
  */
 const createFolder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.body.folderOwner) {
-        return res.status(400).json({ msg: 'User ID not received' });
+    var _a;
+    if (!req.body.folderName) {
+        return res.status(400).json({ msg: 'Folder Name not received' });
     }
-    const user = yield user_1.default.findOne({ _id: req.body.folderOwner });
-    console.log("createFolder executed by: ", user);
+    const authorization = (_a = req.headers) === null || _a === void 0 ? void 0 : _a.authorization;
+    const userId = extractId(authorization);
+    const user = yield user_1.default.findOne({ _id: userId });
     if (!user) {
-        return res.status(400).json({ msg: `No user by the ID: ${req.body.folderOwner}` });
+        return res.status(400).json({ msg: `No user by the ID: ${userId}` });
     }
-    const newFolder = new folder_1.default(req.body);
+    console.log("createFolder executed by:", user.username);
+    const folderData = {
+        folderOwner: userId,
+        folderName: req.body.folderName
+    };
+    const newFolder = new folder_1.default(folderData);
     yield newFolder.save();
     // Return status 201, alongside with the created new folder for folderOwner
     return res.status(201).json(newFolder);
 });
 exports.createFolder = createFolder;
+// UPDATE FOLDER NAME
+/**
+ * req.body must have:
+ * req.body.folderId
+ * req.body.newFolderName
+ */
+const changeFolderName = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.body.folderId) {
+        return res.status(400).json({ msg: "No Folder Id was received." });
+    }
+    if (!req.body.newFolderName) {
+        return res.status(400).json({ msg: "No New Folder Name was received" });
+    }
+    const folder = yield folder_1.default.findOne({ _id: req.body.folderId });
+    if (!folder) {
+        return res.status(400).json({ msg: `No folder with id ${req.body.folderId}` });
+    }
+    // folder id
+    const modifiedFolder = yield folder.modifyName(req.body.newFolderName);
+    if (modifiedFolder) {
+        return res.status(200).json({ msg: `Folder ${modifiedFolder} modified successfully with Name: ${req.body.newFolderName}` });
+    }
+    else {
+        return res.status(500).json({ msg: "Something went wrong modifying the user" });
+    }
+});
+exports.changeFolderName = changeFolderName;
+// READ ALL USER FOLDERS
+const getUserFolders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _b;
+    const authorization = (_b = req.headers) === null || _b === void 0 ? void 0 : _b.authorization;
+    const userId = extractId(authorization);
+    const user = yield user_1.default.findOne({ _id: userId });
+    if (!user) {
+        return res.status(400).json({ msg: `No user by the ID: ${userId}` });
+    }
+    const folders = yield folder_1.default.find({ folderOwner: userId });
+    res.status(200).json(folders);
+});
+exports.getUserFolders = getUserFolders;
+// DELETE ONE FOLDER BY ID
+const deleteFolder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.body.folderId) {
+        return res.status(400).json({ msg: "No folder ID was received" });
+    }
+    yield folder_1.default.deleteOne({ _id: req.body.folderId });
+    return res.status(200).json({ msg: `Deleted Folder with folderId: ${req.body.folderId}` });
+});
+exports.deleteFolder = deleteFolder;
+// DELETE ALL FOLDERS BY USER ID
+const deleteAllFolders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
+    const authorization = (_c = req.headers) === null || _c === void 0 ? void 0 : _c.authorization;
+    const userId = extractId(authorization);
+    const user = yield user_1.default.findOne({ _id: userId });
+    if (!user) {
+        return res.status(400).json({ msg: `No user by the ID: ${userId}` });
+    }
+    yield folder_1.default.deleteMany({ folderOwner: userId });
+    return res.status(200).json({ msg: `All folders from user ${user.username} were deleted` });
+});
+exports.deleteAllFolders = deleteAllFolders;

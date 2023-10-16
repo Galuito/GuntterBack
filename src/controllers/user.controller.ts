@@ -59,7 +59,7 @@ function extractId(authorization:string | undefined){
 // Comment this method out once everything is done
 export const testerRoute = (req: Request, res: Response) =>{
 
-  // console.log("Received body: ",req.body);
+  console.log("Received body: ",req.body);
   // console.log("Received headers: ",req.headers);
   console.log("Authorization header: ", req.headers.authorization)
 
@@ -176,7 +176,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<Response>
  * req.body.newName
  * req.body.newLastName
  */
-export const modifyNames = async (req: Request, res: Response): Promise<Response> =>{
+export const modifyUserNames = async (req: Request, res: Response): Promise<Response> =>{
   // Checks the authorization header and manages if it were to be undefined
   const authorization: string | undefined = req.headers?.authorization;
   const userId = extractId(authorization);
@@ -215,7 +215,7 @@ export const modifyNames = async (req: Request, res: Response): Promise<Response
  * Don't you dare pass an empty password
  * req.body.newPassword
  */
-export const modifyPassword = async (req: Request, res: Response): Promise<Response>=>{
+export const modifyUserPassword = async (req: Request, res: Response): Promise<Response>=>{
     // Checks the authorization header and manages if it were to be undefined
     const authorization: string | undefined = req.headers?.authorization;
     const userId = extractId(authorization);
@@ -264,6 +264,7 @@ export const getUserData = async (req: Request, res: Response): Promise<Response
           return res.status(200).json(
             {
               msg: "User data sent", 
+              id:`${user._id}`,
               username:`${user.username}`,
               email:`${user.email}`,
               name:`${user.name}`,

@@ -5,6 +5,7 @@ import { Schema, model, Document } from "mongoose";
 export interface IFolder extends Document{
   folderName: string;
   folderOwner: Schema.Types.ObjectId;
+  modifyName: (newName:string)=> Promise<string>;
 }
 
 const folderSchema = new Schema({
@@ -26,6 +27,12 @@ folderSchema.pre<IFolder>('save', async function(next){
   next();
 })
 
-// No method for now
+// Folder Methods
+folderSchema.methods.modifyName = async function(newName:string){
+  this.folderName = newName;
+  await this.save();
+  console.log(`Folder: ${this._id} was modified (folderName) and saved successfully`);
+  return this._id;
+}
 
 export default model<IFolder>('Folder', folderSchema);

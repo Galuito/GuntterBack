@@ -29,5 +29,13 @@ folderSchema.pre('save', function (next) {
         next();
     });
 });
-// No method for now
+// Folder Methods
+folderSchema.methods.modifyName = function (newName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        this.folderName = newName;
+        yield this.save();
+        console.log(`Folder: ${this._id} was modified (folderName) and saved successfully`);
+        return this._id;
+    });
+};
 exports.default = (0, mongoose_1.model)('Folder', folderSchema);

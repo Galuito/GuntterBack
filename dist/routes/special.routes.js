@@ -8,11 +8,8 @@ const express_1 = require("express");
 const router = (0, express_1.Router)();
 const user_controller_1 = require("../controllers/user.controller");
 const folder_controller_1 = require("../controllers/folder.controller");
+const note_controller_1 = require("../controllers/note.controller");
 const passport_1 = __importDefault(require("passport"));
-router.get('/special', passport_1.default.authenticate('jwt', { session: false }), (req, res) => {
-    // Placeholder method that isn't inside the controller
-    res.status(200).json({ msg: 'Success reaching the special route' });
-});
 // User Routes
 router.delete('/deleteuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.deleteUser);
 router.put('/modifyusernames', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.modifyUserNames);
@@ -26,4 +23,8 @@ router.put('/modifyfoldername', passport_1.default.authenticate('jwt', { session
 router.get('/getuserfolders', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.getUserFolders);
 router.delete('/deletefolder', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.deleteFolder);
 router.delete('/deleteallfolders', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.deleteAllFolders);
+// Note Routes
+router.post('/createnote', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.createNote);
+router.get('/getfoldernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.getFolderNotes);
+router.get('/getnofoldernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.getNoFolderNotes);
 exports.default = router;

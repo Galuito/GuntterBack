@@ -2,51 +2,14 @@ import {Request, Response} from 'express'
 import User, {IUser} from '../models/user';
 import jwt from 'jsonwebtoken';
 import config from '../config/config'
+import { extractId } from './user.idExtractor';
 
-// Interface for TypeScript
-interface JwtPayLoad{
-  id: string;
-  email: string;
-}
 
 // Expira en 1209600 Segundos o 14 dias
 function createtoken(user: IUser){
   return jwt.sign({id: user.id, email: user.email}, config.jwtSecret, {
     expiresIn: 604800
   });
-}
-
-/**
- * 
- * This function extracts the userId from the authorization header and returns undefined if it were to
- * be an incorrect userId, it is used in every special route to get the userId
- * 
- * The authorization header should never be undefined, why? you may ask, because if any of these controllers
- * are reached that means that the passport authentication was done correctly, therefore, there was an authorization
- * header :)
- */
-function extractId(authorization:string | undefined){
-  if (authorization) {
-    // Extracts the JWT from the bearer
-    const receivedJwt = authorization.split(" ")[1];
-    // Decodes the encoded header
-    const decodedToken = jwt.decode(receivedJwt) as JwtPayLoad;
-    
-    // Extracts the ID from the decoded token
-    if(decodedToken.id){
-      console.log("Correct JWT returning existing userId")
-      return decodedToken.id;
-    
-    }else{
-      console.error('Invalid JWT');
-      return undefined;
-    }
-    
-  }
-  else {
-    console.log("SOMEHOW authorization header is undefined");
-    return undefined;
-  }
 }
 
 /**
@@ -190,13 +153,13 @@ export const modifyUserNames = async (req: Request, res: Response): Promise<Resp
         if(!user){
           return res.status(400).json({msg: 'The user does not exist'});
         }
-          // returns user.username
-          const modifiedUser = await user.modifyNames(req.body.newName, req.body.newLastName);
-          if(modifiedUser){
-            return res.status(200).json({msg:`User ${modifiedUser} modified successfully with Name: ${req.body.newName} and Last Name: ${req.body.newLastName}`});
-          }else{
-            return res.status(500).json({msg:"Something went wrong modifying the user"})
-          }
+        // returns user.username
+        const modifiedUser = await user.modifyNames(req.body.newName, req.body.newLastName);
+        if(modifiedUser){
+          return res.status(200).json({msg:`User ${modifiedUser} modified successfully with Name: ${req.body.newName} and Last Name: ${req.body.newLastName}`});
+        }else{
+          return res.status(500).json({msg:"Something went wrong modifying the user"})
+        }
     }
     else {
       console.log("Used Id is undefined");

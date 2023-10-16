@@ -16,41 +16,12 @@ exports.getUserData = exports.modifyUserPassword = exports.modifyUserNames = exp
 const user_1 = __importDefault(require("../models/user"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../config/config"));
+const user_idExtractor_1 = require("./user.idExtractor");
 // Expira en 1209600 Segundos o 14 dias
 function createtoken(user) {
     return jsonwebtoken_1.default.sign({ id: user.id, email: user.email }, config_1.default.jwtSecret, {
         expiresIn: 604800
     });
-}
-/**
- *
- * This function extracts the userId from the authorization header and returns undefined if it were to
- * be an incorrect userId, it is used in every special route to get the userId
- *
- * The authorization header should never be undefined, why? you may ask, because if any of these controllers
- * are reached that means that the passport authentication was done correctly, therefore, there was an authorization
- * header :)
- */
-function extractId(authorization) {
-    if (authorization) {
-        // Extracts the JWT from the bearer
-        const receivedJwt = authorization.split(" ")[1];
-        // Decodes the encoded header
-        const decodedToken = jsonwebtoken_1.default.decode(receivedJwt);
-        // Extracts the ID from the decoded token
-        if (decodedToken.id) {
-            console.log("Correct JWT returning existing userId");
-            return decodedToken.id;
-        }
-        else {
-            console.error('Invalid JWT');
-            return undefined;
-        }
-    }
-    else {
-        console.log("SOMEHOW authorization header is undefined");
-        return undefined;
-    }
 }
 /**
  *
@@ -66,7 +37,7 @@ const testerRoute = (req, res) => {
     console.log("Authorization header: ", req.headers.authorization);
     // Use optional chaining to safely access req.headers.authorization
     const authorization = (_a = req.headers) === null || _a === void 0 ? void 0 : _a.authorization;
-    const userId = extractId(authorization);
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
     console.log("Extracted ID:", userId);
     return res.status(200).json({ msg: "Reached the end" });
 };
@@ -141,7 +112,7 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     var _a;
     // Checks the authorization header and manages if it were to be undefined
     const authorization = (_a = req.headers) === null || _a === void 0 ? void 0 : _a.authorization;
-    const userId = extractId(authorization);
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
     try {
         // If there is an authorization header and it passed the verification.
         if (userId) {
@@ -171,7 +142,7 @@ const modifyUserNames = (req, res) => __awaiter(void 0, void 0, void 0, function
     var _b;
     // Checks the authorization header and manages if it were to be undefined
     const authorization = (_b = req.headers) === null || _b === void 0 ? void 0 : _b.authorization;
-    const userId = extractId(authorization);
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
     // Makes sure that the user passes the parameters for the modifyNames user method
     if (!req.body.newName || !req.body.newLastName) {
         return res.status(400).json({ msg: "Please, pass req.body.newName and req.body.newLastName" });
@@ -212,7 +183,7 @@ const modifyUserPassword = (req, res) => __awaiter(void 0, void 0, void 0, funct
     var _c;
     // Checks the authorization header and manages if it were to be undefined
     const authorization = (_c = req.headers) === null || _c === void 0 ? void 0 : _c.authorization;
-    const userId = extractId(authorization);
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.newPassword) {
         return res.status(400).json({ msg: "Please pass the req.body.newPassword" });
     }
@@ -247,7 +218,7 @@ const getUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     var _d;
     // Checks the authorization header and manages if it were to be undefined
     const authorization = (_d = req.headers) === null || _d === void 0 ? void 0 : _d.authorization;
-    const userId = extractId(authorization);
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
     try {
         // If there is an authorization header and it passed the verification.
         if (userId) {

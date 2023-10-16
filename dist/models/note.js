@@ -10,7 +10,7 @@ const noteSchema = new mongoose_1.Schema({
     desc: {
         type: String,
         required: true,
-        trim: true
+        trim: false
     },
     noteFolder: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -18,7 +18,8 @@ const noteSchema = new mongoose_1.Schema({
         required: false
     },
     color: {
-        type: String
+        type: String,
+        required: false
     },
     noteOwner: {
         type: mongoose_1.Schema.Types.ObjectId,

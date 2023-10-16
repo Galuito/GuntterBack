@@ -1,48 +1,17 @@
 import {Request, Response} from 'express'
 import Folder from '../models/folder';
 import User from '../models/user';
-import jwt from 'jsonwebtoken';
+import { extractId } from './user.idExtractor';
 
-// Interface for TypeScript
-interface JwtPayLoad{
-  id: string;
-  email: string;
-}
-
-function extractId(authorization:string | undefined){
-  if (authorization) {
-    // Extracts the JWT from the bearer
-    const receivedJwt = authorization.split(" ")[1];
-    // Decodes the encoded header
-    const decodedToken = jwt.decode(receivedJwt) as JwtPayLoad;
-    
-    // Extracts the ID from the decoded token
-    if(decodedToken.id){
-      // console.log("Correct JWT returning existing userId")
-      return decodedToken.id;
-    
-    }else{
-      console.error('Invalid JWT');
-      return undefined;
-    }
-    
-  }
-  else {
-    console.log("SOMEHOW authorization header is undefined");
-    return undefined;
-  }
-}
 
 // CREATE FOLDER
 /**
  * req.body must only have:
- * req.body.folderName
+ * req.body.folderName (OPTIONAL if not passed it'll be "New Folder")
  * The folder owner is extracted from the Authorization header and is then inserted into a creation JSON
  */
 export const createFolder = async (req: Request, res: Response) =>{
-  if(!req.body.folderName){
-    return res.status(400).json({msg:'Folder Name not received'})
-  }
+  const folderName = req.body.folderName || 'Nueva Coleccion';
 
   const authorization: string | undefined = req.headers?.authorization;
   const userId = extractId(authorization);
@@ -55,7 +24,7 @@ export const createFolder = async (req: Request, res: Response) =>{
 
   const folderData = {
     folderOwner:userId,
-    folderName:req.body.folderName
+    folderName:folderName
   }
 
   const newFolder = new Folder(folderData);
@@ -93,6 +62,9 @@ export const changeFolderName = async (req: Request, res: Response) =>{
 }
 
 // READ ALL USER FOLDERS
+/**
+ * For this one you don't have to pass nothing to the body, it'll be done using the authorization
+ */
 export const getUserFolders = async (req: Request, res: Response) =>{
   const authorization: string | undefined = req.headers?.authorization;
   const userId = extractId(authorization);
@@ -112,13 +84,30 @@ export const deleteFolder = async (req: Request, res: Response) =>{
   if(!req.body.folderId){
     return res.status(400).json({msg:"No folder ID was received"});
   }
-  await Folder.deleteOne({_id: req.body.folderId});
-  return res.status(200).json({msg:`Deleted Folder with folderId: ${req.body.folderId}`})
+
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+
+  const folder = await Folder.findOne({_id: req.body.folderId})
+
+  if(!folder){
+    return res.status(400).json({msg:`No folder by the ID:${req.body.folderId}`})
+  }
+
+  // Una string si puede ser comparada a un objectId pero TypeScript se puso poppy y dijo que no se puede ¬¬
+  // @ts-ignore
+  if(folder.folderOwner == userId){
+    await Folder.deleteOne({_id: req.body.folderId});
+    return res.status(200).json({msg:`Deleted Folder with folderId: ${req.body.folderId}`})
+  }
+  else{
+    return res.status(400).json({msg:"This user is not the owner of the folder to delete"})
+  }
 
 }
 
 // DELETE ALL FOLDERS BY USER ID
-export const deleteAllFolders = async (req: Request, res: Response) =>{
+export const deleteUserFolders = async (req: Request, res: Response) =>{
   const authorization: string | undefined = req.headers?.authorization;
   const userId = extractId(authorization);
 

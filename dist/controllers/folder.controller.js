@@ -15,41 +15,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteAllFolders = exports.deleteFolder = exports.getUserFolders = exports.changeFolderName = exports.createFolder = void 0;
 const folder_1 = __importDefault(require("../models/folder"));
 const user_1 = __importDefault(require("../models/user"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-function extractId(authorization) {
-    if (authorization) {
-        // Extracts the JWT from the bearer
-        const receivedJwt = authorization.split(" ")[1];
-        // Decodes the encoded header
-        const decodedToken = jsonwebtoken_1.default.decode(receivedJwt);
-        // Extracts the ID from the decoded token
-        if (decodedToken.id) {
-            // console.log("Correct JWT returning existing userId")
-            return decodedToken.id;
-        }
-        else {
-            console.error('Invalid JWT');
-            return undefined;
-        }
-    }
-    else {
-        console.log("SOMEHOW authorization header is undefined");
-        return undefined;
-    }
-}
+const user_idExtractor_1 = require("./user.idExtractor");
 // CREATE FOLDER
 /**
  * req.body must only have:
- * req.body.folderName
+ * req.body.folderName (OPTIONAL if not passed it'll be "New Folder")
  * The folder owner is extracted from the Authorization header and is then inserted into a creation JSON
  */
 const createFolder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    if (!req.body.folderName) {
-        return res.status(400).json({ msg: 'Folder Name not received' });
-    }
+    const folderName = req.body.folderName || 'Nueva Coleccion';
     const authorization = (_a = req.headers) === null || _a === void 0 ? void 0 : _a.authorization;
-    const userId = extractId(authorization);
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
     const user = yield user_1.default.findOne({ _id: userId });
     if (!user) {
         return res.status(400).json({ msg: `No user by the ID: ${userId}` });
@@ -57,7 +34,7 @@ const createFolder = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     console.log("createFolder executed by:", user.username);
     const folderData = {
         folderOwner: userId,
-        folderName: req.body.folderName
+        folderName: folderName
     };
     const newFolder = new folder_1.default(folderData);
     yield newFolder.save();
@@ -93,10 +70,13 @@ const changeFolderName = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.changeFolderName = changeFolderName;
 // READ ALL USER FOLDERS
+/**
+ * For this one you don't have to pass nothing to the body, it'll be done using the authorization
+ */
 const getUserFolders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _b;
     const authorization = (_b = req.headers) === null || _b === void 0 ? void 0 : _b.authorization;
-    const userId = extractId(authorization);
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
     const user = yield user_1.default.findOne({ _id: userId });
     if (!user) {
         return res.status(400).json({ msg: `No user by the ID: ${userId}` });
@@ -107,18 +87,32 @@ const getUserFolders = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.getUserFolders = getUserFolders;
 // DELETE ONE FOLDER BY ID
 const deleteFolder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
     if (!req.body.folderId) {
         return res.status(400).json({ msg: "No folder ID was received" });
     }
-    yield folder_1.default.deleteOne({ _id: req.body.folderId });
-    return res.status(200).json({ msg: `Deleted Folder with folderId: ${req.body.folderId}` });
+    const authorization = (_c = req.headers) === null || _c === void 0 ? void 0 : _c.authorization;
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
+    const folder = yield folder_1.default.findOne({ _id: req.body.folderId });
+    if (!folder) {
+        return res.status(400).json({ msg: `No folder by the ID:${req.body.folderId}` });
+    }
+    // Una string si puede ser comparada a un objectId pero TypeScript se puso poppy y dijo que no se puede ¬¬
+    // @ts-ignore
+    if (folder.folderOwner == userId) {
+        yield folder_1.default.deleteOne({ _id: req.body.folderId });
+        return res.status(200).json({ msg: `Deleted Folder with folderId: ${req.body.folderId}` });
+    }
+    else {
+        return res.status(400).json({ msg: "This user is not the owner of the folder to delete" });
+    }
 });
 exports.deleteFolder = deleteFolder;
 // DELETE ALL FOLDERS BY USER ID
 const deleteAllFolders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
-    const authorization = (_c = req.headers) === null || _c === void 0 ? void 0 : _c.authorization;
-    const userId = extractId(authorization);
+    var _d;
+    const authorization = (_d = req.headers) === null || _d === void 0 ? void 0 : _d.authorization;
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
     const user = yield user_1.default.findOne({ _id: userId });
     if (!user) {
         return res.status(400).json({ msg: `No user by the ID: ${userId}` });

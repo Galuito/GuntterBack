@@ -2,7 +2,7 @@
   "name": "dgback",
   "version": "1.0.0",
   "description": "DGBack stands for Diaz-Galue-Backend refering to the name of our \"Programación de Dispositivos Móviles\"'s project DGpad (Digipad).",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "howToRun": "npm run dev",
     "start": "node dist/index.js",

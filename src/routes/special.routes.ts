@@ -13,7 +13,8 @@ router.delete('/deleteuser', passport.authenticate('jwt', {session: false}), del
 router.put('/modifyusernames', passport.authenticate('jwt', {session: false}), modifyUserNames);
 router.put('/modifyuserpassword', passport.authenticate('jwt', {session: false}), modifyUserPassword);
 
-router.get('/getuserdata', passport.authenticate('jwt', {session: false}), getUserData);
+// Were get requests but had to be changed at the last hour >:(
+router.post('/getuserdata', passport.authenticate('jwt', {session: false}), getUserData);
 
 // Delete this one once you are done
 router.post('/testerroute', passport.authenticate('jwt', {session: false}), testerRoute);
@@ -24,7 +25,8 @@ router.post('/createfolder', passport.authenticate('jwt', {session: false}), cre
 
 router.put('/modifyfoldername', passport.authenticate('jwt', {session: false}), changeFolderName);
 
-router.get('/getuserfolders', passport.authenticate('jwt', {session: false}), getUserFolders);
+// Were get requests but had to be changed at the last hour >:(
+router.post('/getuserfolders', passport.authenticate('jwt', {session: false}), getUserFolders);
 
 router.delete('/deletefolder', passport.authenticate('jwt', {session: false}), deleteFolder);
 router.delete('/deleteallfolders', passport.authenticate('jwt', {session: false}), deleteUserFolders);
@@ -32,8 +34,9 @@ router.delete('/deleteallfolders', passport.authenticate('jwt', {session: false}
 // Note Routes
 router.post('/createnote',passport.authenticate('jwt', {session: false}), createNote);
 
-router.get('/getfoldernotes',passport.authenticate('jwt', {session: false}), getFolderNotes);
-router.get('/getnofoldernotes',passport.authenticate('jwt', {session: false}), getNoFolderNotes);
+// Were get requests but had to be changed at the last hour >:(
+router.post('/getfoldernotes',passport.authenticate('jwt', {session: false}), getFolderNotes);
+router.post('/getnofoldernotes',passport.authenticate('jwt', {session: false}), getNoFolderNotes);
 
 router.delete('/deletenoteid',passport.authenticate('jwt', {session: false}), deleteNoteById);
 router.delete('/deletefoldernotes',passport.authenticate('jwt', {session: false}), deleteFolderNotes);

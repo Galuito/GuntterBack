@@ -5,6 +5,6 @@ import {signIn, signUp} from '../controllers/user.controller';
 
 // User Routes
 router.post('/signup', signUp)
-router.get('/signin', signIn)
+router.post('/signin', signIn)
 
 export default router;

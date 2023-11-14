@@ -1,7 +1,7 @@
 {
-  "name": "dgback",
+  "name": "guntterback",
   "version": "1.0.0",
-  "description": "DGBack stands for Diaz-Galue-Backend refering to the name of our \"Programación de Dispositivos Móviles\"'s project DGpad (Digipad).",
+  "description": "Guntterback is a mere copy of Twitter using the famous name of the Character Gunter from Adventure Time",
   "main": "dist/index.js",
   "scripts": {
     "howToRun": "npm run dev",
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Galuito/DGBack.git"
+    "url": "git+https://github.com/Galuito/GuntterBack.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Galuito/DGBack/issues"
+    "url": "https://github.com/Galuito/GuntterBack/issues"
   },
-  "homepage": "https://github.com/Galuito/DGBack#readme",
+  "homepage": "https://github.com/Galuito/GuntterBack#readme",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",

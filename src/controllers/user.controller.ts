@@ -12,15 +12,9 @@ function createtoken(user: IUser){
   });
 }
 
-/**
- * 
- * Todas estas notas estan escritas en ingles porque se me hace mas facil pensar en ingles cuando estoy programando
- * en caso de que se lo estuviera preguntando o en caso de que este leyendo esto Profe Mario
- * No pongo acentos porque se buguean cuando guardo los archivos
- */
-
-// Comment this method out once everything is done
-export const testerRoute = (req: Request, res: Response) =>{
+// This is a tester controller that is used to print request and response data so that everything
+// behaves correctly, and the correct data is being sent/received
+export const testerController = (req: Request, res: Response) =>{
 
   console.log("Received body: ",req.body);
   // console.log("Received headers: ",req.headers);
@@ -40,21 +34,23 @@ export const testerRoute = (req: Request, res: Response) =>{
 /**
  * 
  * Simple sign up function that creates a user, please pass the following parameters in the body.
+ * OBLIGATORY
  * email => string
  * username => string
  * password => string
- * name => string
- * lastName => string
+ * fullname => string
  * 
+ * OPTIONAL
+ * bio => string
+ * PFP => string
  */
 export const signUp = async (req: Request, res: Response): Promise<Response> =>{
-  if(!req.body.email || !req.body.password || !req.body.username || !req.body.name || !req.body.lastName){
-    return res.status(400).json({msg: 'Please. Provide with all the fields of a User (email, password, username, name and lastName)'});
+  if(!req.body.email || !req.body.password || !req.body.username || !req.body.fullname){
+    return res.status(400).json({msg: 'Please. Provide with all the fields of a User (email, password, username and fullname)'});
   }
-  // previous check that didn't work with multi checks
-  // const user = await User.findOne({email: req.body.email, username: req.body.username});
 
-  // This check should be separated so that you know if it was the email or the username
+  // This checks wether if the user or email is already used to avoid creating a user with
+  // an already existing credential
   const foundUsers = await User.find({
     $or:[
       {email: req.body.email},
@@ -62,9 +58,8 @@ export const signUp = async (req: Request, res: Response): Promise<Response> =>{
     ]
   });
 
-  // If no user is found, it returns an empty array which is always true, therefore, you need to check 
-  // the array length to determine wether or not there was a user with the same email or username
-  // console.log(foundUsers);
+  // If the returned array is lenght 0 that means there's no found user, therefore, the user 
+  // may be created
   if(!(foundUsers.length === 0)){
     return res.status(400).json({msg: "The username or email are already used"});
   }
@@ -83,23 +78,41 @@ export const signUp = async (req: Request, res: Response): Promise<Response> =>{
  * application and see its notes
  */
 export const signIn = async (req: Request, res: Response) =>{
-  if (!req.body.email || !req.body.password){
-    return res.status(400).json({msg:'Please. Send your email and password'});
+  if (!req.body.password){
+    return res.status(400).json({msg:'Please. Send your password'});
   }
 
-  const user = await User.findOne({email: req.body.email})
-  if(!user){
-    return res.status(400).json({msg: 'The user does not exist'});
+  if(req.body.email){
+    const user = await User.findOne({email: req.body.email})
+    if(!user){
+      return res.status(400).json({msg: 'The user does not exist'});
+    }
+
+    const isMatch = await user.comparePassword(req.body.password);
+    if (isMatch){
+      return res.status(200).json({token: createtoken(user)})
+    }
+
+  }else if(req.body.username){
+    const user = await User.findOne({username: req.body.username});
+    if(!user){
+      return res.status(400).json({msg: 'The user does not exist'});
+    }
+
+    const isMatch = await user.comparePassword(req.body.password);
+    if (isMatch){
+      return res.status(200).json({token: createtoken(user)})
+    }
+
+  }else{
+    return res.status(400).json({msg:'Please. Send email or username'})
   }
 
-  const isMatch = await user.comparePassword(req.body.password);
-  if (isMatch){
-    return res.status(200).json({token: createtoken(user)})
-  }
-
+  // Code should never reach this far, the code should at least return in the last else statement
   return res.status(400).json({
     msg: 'The email or password are incorrect' 
   })
+
 }
 
 //DELETE USER
@@ -108,17 +121,35 @@ export const signIn = async (req: Request, res: Response) =>{
  * This function extracts the JWT from the header passes it to the extracId function and then operates based
  * on the result, if there is no userId and the result is undefined it returns an error
  * 
+ * The function now handles the user password, it is sent the password and if it doesn't match
+ * then the deletion does not proceed
+ * 
  */
 export const deleteUser = async (req: Request, res: Response): Promise<Response> =>{
   // Checks the authorization header and manages if it were to be undefined
   const authorization: string | undefined = req.headers?.authorization;
   const userId = extractId(authorization);
 
+  if(!req.body.password){
+    return res.status(400).json({msg:"Please. Send the password"});
+  }
+
   try{
     // If there is an authorization header and it passed the verification.
     if (userId) {
-      await User.deleteOne({_id: userId});
-      return res.status(200).json({msg:`Deleted User with userId: ${userId}`})
+      const user = await User.findOne({_id: userId})
+      if(!user){
+        return res.status(400).json({msg:"User does not exist"});
+      }
+      const isMatch = await user.comparePassword(req.body.password);
+
+      if(isMatch){
+        await User.deleteOne({_id: userId})
+        return res.status(200).json({msg:`Deleted User with username: ${user.username}`});
+      }
+      else{
+        return res.status(400).json({msg:"Password did not match"});
+      }
     }
     else {
       console.log("User ID is undefined");
@@ -131,21 +162,48 @@ export const deleteUser = async (req: Request, res: Response): Promise<Response>
   }
 }
 
-// UPDATE USER NAMES (not username)
+async function isUsernameAvailable(newUsername: String, currentUsername: String) {
+  // Query the database to check if the new username is already in use
+  const existingUser = await User.findOne({ username: newUsername });
+
+  // If no user with the new username is found or the found user is the current user, the username is available
+  return !existingUser || (existingUser.username === currentUsername);
+}
+
+export const checkUsername = async (req: Request, res: Response): Promise<Response> => {
+  if(!req.body.newUsername || !req.body.username){
+    return res.status(400).json({msg:"Please. Pass the usernames to check"})
+  }
+  const isAvailable = await isUsernameAvailable(req.body.newUsername, req.body.username);
+  if(isAvailable){
+    return res.status(200).json({isValidUsername: true, msg:"Username is Available."})
+  }
+  return res.status(400).json({isValidUsername: false, msg:"Username is not Available."} )
+}
+
+// UPDATE USER VALUES 
 /**
  * 
- * The new name and lastName will be located in the request rather than the headers.
- * Don't pass an empty string or the user will have an empty name or lastname or both.
- * req.body.newName
- * req.body.newLastName
+ * Everything is located in the request body
+ * Empty values are handled by the function, so even if you pass only one or none it will work
+ * as it should
+ * req.body.newUsername
+ * req.body.newFullname
+ * req.body.newBio
+ * 
+ * This function is able to handle multiple changes and submit them in the end, even if the 
+ * username is not valid, it will work, only that it'll return that the username change failed
+ * but everything else worked fine
+ * 
+ * THIS FUNCTION CAN TAKE SOME SECONDS TO EXECUTE
  */
-export const modifyUserNames = async (req: Request, res: Response): Promise<Response> =>{
+export const modifyUser = async (req: Request, res: Response): Promise<Response> =>{
   // Checks the authorization header and manages if it were to be undefined
   const authorization: string | undefined = req.headers?.authorization;
   const userId = extractId(authorization);
   // Makes sure that the user passes the parameters for the modifyNames user method
-  if(!req.body.newName || !req.body.newLastName){
-    return res.status(400).json({msg: "Please, pass req.body.newName and req.body.newLastName"})
+  if(!req.body.newUsername && !req.body.newFullname && !req.body.newBio){
+    return res.status(400).json({msg: "No parameters passed. No changes to the user", missingParams:"newUsername, newFullname, newBio"})
   }
   try{
     if (userId) {
@@ -153,13 +211,47 @@ export const modifyUserNames = async (req: Request, res: Response): Promise<Resp
         if(!user){
           return res.status(400).json({msg: 'The user does not exist'});
         }
-        // returns user.username
-        const modifiedUser = await user.modifyNames(req.body.newName, req.body.newLastName);
-        if(modifiedUser){
-          return res.status(200).json({msg:`User ${modifiedUser} modified successfully with Name: ${req.body.newName} and Last Name: ${req.body.newLastName}`});
-        }else{
-          return res.status(500).json({msg:"Something went wrong modifying the user"})
+
+        var modifiedFields: {
+          username: string;
+          bio: string;
+          fullname: string;
+        } = {
+          username: "unchanged",
+          bio: "unchanged",
+          fullname: "unchanged"
+        };
+
+        var changeFail:boolean = false;
+
+        // I need to return flags as to what was changed correctly
+        if(req.body.newUsername){
+          const isAvailable = await isUsernameAvailable(req.body.newUsername, user.username);
+          if(isAvailable){
+            await user.modifyUsername(req.body.newUsername)
+            modifiedFields['username'] = "Changed Successfully!";
+          }
+          else{
+            modifiedFields['username'] = "Error! Unavailable."
+            changeFail = true;
+          }
         }
+        if(req.body.newBio){
+          await user.modifyBio(req.body.newBio);
+          modifiedFields['bio'] = "Changed Successfully!"
+        }
+        if(req.body.newFullname){
+          await user.modifyFullname(req.body.newFullname);
+          modifiedFields['fullname'] = "Changed Successfully!"
+        }
+
+        if(changeFail){
+          // Partial Success Status
+          return res.status(207).json({msg:"Partial Success on the changes", modifiedFields})
+        }
+
+        return res.status(200).json({msg:"Changes were done correctly",modifiedFields})
+
     }
     else {
       console.log("Used Id is undefined");
@@ -230,8 +322,10 @@ export const getUserData = async (req: Request, res: Response): Promise<Response
               id:`${user._id}`,
               username:`${user.username}`,
               email:`${user.email}`,
-              name:`${user.name}`,
-              lastName:`${user.lastName}`,
+              fullname:`${user.fullname}`,
+              bio:`${user.bio}`,
+              PFP:`${user.profilePicture}`,
+              banner:`${user.bannerPicture}`
             });
         
       }
@@ -245,3 +339,103 @@ export const getUserData = async (req: Request, res: Response): Promise<Response
       return res.status(500).json({msg:`Something went wrong ${error}`})
     }
 }
+
+// FOLLOW USER
+/**
+ * This function will be in charge of adding a user to its following array, it will also add the 
+ * same user to the target user's followers array
+ * 
+ * The function uses the userId from the authorization header and req.body.targetUser, which is the 
+ * targetUser ID, before doing anything, it checks if both users exist.
+ */
+export const followUser = async (req: Request, res: Response): Promise<Response>=>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+
+  if(!req.body.targetUser){
+    return res.status(400).json({msg:"Please. Send the target user's ID"})
+  }
+
+  try{
+    // If there is an authorization header and it passed the verification.
+    if (userId) {
+        const user = await User.findOne({_id: userId});
+        if(!user){
+          return res.status(400).json({msg: 'The user does not exist'});
+        }
+        
+        const targetUser = await User.findOne({_id: req.body.targetUser});
+        if(!targetUser){
+          return res.status(400).json({msg: 'The target user does not exist'});
+        }
+        
+        const isFollowing = await user.isFollowing(req.body.targetUser);
+        if(isFollowing){
+          return res.status(400).json({msg: 'The target user is already followed by the user'})
+        }
+
+        user.followUser(req.body.targetUser)
+        targetUser.addFollower(userId);
+
+        return res.status(200).json({msg:"User followed and added successfully"});
+      
+    }
+    else {
+      console.log("User Id is undefined");
+      return res.status(400).json({msg:"A problem arised with the JWT"});
+    }
+
+  }catch(error){
+    console.error('Error decoding JWT:', error)
+    return res.status(500).json({msg:`Something went wrong ${error}`})
+  }
+} 
+
+
+// UNFOLLOW USER
+/**
+ * It will do the same as the previous function but backwards, it will remove the user from both
+ * arrays.
+ */
+export const unfollowUser = async (req: Request, res: Response): Promise<Response>=>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+
+  if(!req.body.targetUser){
+    return res.status(400).json({msg:"Please. Send the target user's ID"})
+  }
+
+  try{
+    // If there is an authorization header and it passed the verification.
+    if (userId) {
+        const user = await User.findOne({_id: userId});
+        if(!user){
+          return res.status(400).json({msg: 'The user does not exist'});
+        }
+        
+        const targetUser = await User.findOne({_id: req.body.targetUser});
+        if(!targetUser){
+          return res.status(400).json({msg: 'The target user does not exist'});
+        }
+        
+        const isFollowing = await user.isFollowing(req.body.targetUser);
+        if(!isFollowing){
+          return res.status(400).json({msg: 'The target user is not followed by the user'})
+        }
+
+        user.unfollowUser(req.body.targetUser)
+        targetUser.removeFollower(userId);
+
+        return res.status(200).json({msg:"User unfollowed and removed successfully"});
+      
+    }
+    else {
+      console.log("User Id is undefined");
+      return res.status(400).json({msg:"A problem arised with the JWT"});
+    }
+
+  }catch(error){
+    console.error('Error decoding JWT:', error)
+    return res.status(500).json({msg:`Something went wrong ${error}`})
+  }
+} 

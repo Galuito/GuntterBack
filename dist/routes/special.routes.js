@@ -7,34 +7,29 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const router = (0, express_1.Router)();
 const user_controller_1 = require("../controllers/user.controller");
-const folder_controller_1 = require("../controllers/folder.controller");
-const note_controller_1 = require("../controllers/note.controller");
 const passport_1 = __importDefault(require("passport"));
+const goont_controller_1 = require("../controllers/goont.controller");
+// Use this to test things sent and received
+router.post('/testerroute', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.testerController);
 // User Routes
+// - DELETE ROUTE
 router.delete('/deleteuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.deleteUser);
-router.put('/modifyusernames', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.modifyUserNames);
+// - MODIFY ROUTES
+router.put('/modifyuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.modifyUser);
 router.put('/modifyuserpassword', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.modifyUserPassword);
-// Were get requests but had to be changed at the last hour >:(
+// - GET ROUTES
+router.post('/checkusername', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.checkUsername);
 router.post('/getuserdata', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.getUserData);
-// Delete this one once you are done
-router.post('/testerroute', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.testerRoute);
-// Folder Routes
-router.post('/createfolder', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.createFolder);
-router.put('/modifyfoldername', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.changeFolderName);
-// Were get requests but had to be changed at the last hour >:(
-router.post('/getuserfolders', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.getUserFolders);
-router.delete('/deletefolder', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.deleteFolder);
-router.delete('/deleteallfolders', passport_1.default.authenticate('jwt', { session: false }), folder_controller_1.deleteUserFolders);
-// Note Routes
-router.post('/createnote', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.createNote);
-// Were get requests but had to be changed at the last hour >:(
-router.post('/getfoldernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.getFolderNotes);
-router.post('/getnofoldernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.getNoFolderNotes);
-router.delete('/deletenoteid', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.deleteNoteById);
-router.delete('/deletefoldernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.deleteFolderNotes);
-router.delete('/deleteusernotes', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.deleteUserNotes);
-router.put('/modifynotetitle', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.modifyNoteTitle);
-router.put('/modifynotecontent', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.modifyNoteContent);
-router.put('/modifynotefolder', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.modifyNoteFolder);
-router.put('/modifynotecolor', passport_1.default.authenticate('jwt', { session: false }), note_controller_1.modifyNoteColor);
+router.put('/followuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.followUser);
+router.put('/unfollowuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.unfollowUser);
+// Goont Routes
+// - CREATE ROUTES
+router.post('/creategoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.createGoont);
+router.post('/replygoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.createReply);
+// - MODIFY ROUTES
+router.put('/modifygoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.modifyContent);
+router.put('/likegoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.likeGoont);
+router.put('/unlikegoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.unlikeGoont);
+// - DELETE ROUTES
+router.delete('/deletegoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.deleteGoont);
 exports.default = router;

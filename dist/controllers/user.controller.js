@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -12,11 +35,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unfollowUser = exports.followUser = exports.getUserData = exports.modifyUserPassword = exports.modifyUser = exports.checkUsername = exports.deleteUser = exports.signIn = exports.signUp = exports.testerController = void 0;
+exports.fuzzySearchUsers = exports.unfollowUser = exports.followUser = exports.getUserData = exports.modifyUserPassword = exports.modifyUser = exports.checkUsername = exports.deleteUser = exports.signIn = exports.signUp = exports.testerController = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../config/config"));
 const user_idExtractor_1 = require("./user.idExtractor");
+const fuzzy = __importStar(require("fuzzy"));
 // Expira en 1209600 Segundos o 14 dias
 function createtoken(user) {
     return jsonwebtoken_1.default.sign({ id: user.id, email: user.email }, config_1.default.jwtSecret, {
@@ -413,3 +437,21 @@ const unfollowUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.unfollowUser = unfollowUser;
+const fuzzySearchUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _g;
+    const authorization = (_g = req.headers) === null || _g === void 0 ? void 0 : _g.authorization;
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
+    if (!req.body.username) {
+        return res.status(400).json({ msg: "Please. Provide with the username to search" });
+    }
+    const user = yield user_1.default.findOne({ _id: userId });
+    if (!user) {
+        return res.status(400).json({ msg: 'The user does not exist' });
+    }
+    const allUsers = yield user_1.default.find({}, 'username fullname profilePicture bio');
+    const results = fuzzy.filter(req.body.username, allUsers, { extract: user => user.username });
+    // Extract matched users from the fuzzy matching results
+    const matchedUsers = results.map(result => result.original);
+    return res.status(200).json({ msg: "Users sent", users: matchedUsers });
+});
+exports.fuzzySearchUsers = fuzzySearchUsers;

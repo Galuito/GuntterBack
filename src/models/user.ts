@@ -70,7 +70,7 @@ const userSchema = new Schema({
   },
   profilePicture:{
     type: String,
-    default: 'default_profile_picture.jpg'
+    default: 'https://hips.hearstapps.com/digitalspyuk.cdnds.net/17/13/1490989538-egg.jpg'
   },
   bannerPicture:{
     type: String,

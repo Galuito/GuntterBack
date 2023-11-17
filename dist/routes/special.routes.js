@@ -22,6 +22,7 @@ router.post('/checkusername', passport_1.default.authenticate('jwt', { session: 
 router.post('/getuserdata', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.getUserData);
 router.put('/followuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.followUser);
 router.put('/unfollowuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.unfollowUser);
+router.post('/findusers', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.fuzzySearchUsers);
 // Goont Routes
 // - CREATE ROUTES
 router.post('/creategoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.createGoont);
@@ -32,4 +33,9 @@ router.put('/likegoont', passport_1.default.authenticate('jwt', { session: false
 router.put('/unlikegoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.unlikeGoont);
 // - DELETE ROUTES
 router.delete('/deletegoont', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.deleteGoont);
+// - GET ROUTES
+router.post('/getusergoonts', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.getUserGoonts);
+router.post('/getgoontreplies', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.getGoontReplies);
+router.post('/getfeed', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.getFeed);
+router.post('/getallgoonts', passport_1.default.authenticate('jwt', { session: false }), goont_controller_1.getAllGoonts);
 exports.default = router;

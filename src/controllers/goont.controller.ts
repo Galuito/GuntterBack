@@ -231,6 +231,25 @@ export const createReply = async (req: Request, res: Response): Promise<Response
   return res.status(201).json(newGoont);
 }
 
+// GET ALL GOONTS
+export const getAllGoonts = async (req: Request, res: Response): Promise<Response> =>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+
+  const user = await User.findOne({_id: userId})
+  if(!user){
+    return res.status(400).json({msg: 'The user does not exist'});
+  }
+
+  const allGoonts = await Goont.find({isComment:false}, {_id:false, likes:false, isComment:false, isEdited:false, __v:false})
+  .populate({
+    path:'author',
+    select: 'username fullname profilePicture -_id'
+  })
+
+  return res.status(200).json({msg:"All goonts sent", allGoonts:allGoonts})
+}
+
 // GET FEED GOONTS
 /**
  * Get's the goonts from the user and its following array users
@@ -239,6 +258,9 @@ export const createReply = async (req: Request, res: Response): Promise<Response
  * goont's information, this information being:
  * PFP (link), fullname, username, content, image, likes.
  * ALSO it will be important to provide with the date so that the FrontEnd can sort them by date.
+ * 
+ * With the knowledge I gained from doing the two other controllers, I consider that this function will be much
+ * easier than I imagined
  */
 export const getFeed = async (req: Request, res: Response): Promise<Response> =>{
   const authorization: string | undefined = req.headers?.authorization;
@@ -249,7 +271,13 @@ export const getFeed = async (req: Request, res: Response): Promise<Response> =>
     return res.status(400).json({msg: 'The user does not exist'});
   }
 
-  return res.status(200).json({msg:"I'm tired, it reached the end, believe me"})
+  const followingList = [...user.following, userId];
+  const feedGoonts = await Goont.find({author: {$in: followingList}, isComment:false}, {_id:false, likes:false, isComment:false, isEdited:false, __v:false})
+  .populate({
+    path:'author',
+    select: 'username fullname profilePicture -_id'
+  })
+  return res.status(200).json({msg:"Feed goonts sent", feedGoonts:feedGoonts});
 }
 
 // GET PROFILE GOONTS
@@ -267,21 +295,41 @@ export const getUserGoonts = async (req: Request, res: Response): Promise<Respon
     return res.status(400).json({msg: 'The user does not exist'});
   }
 
-  return res.status(200).json({msg:"I'm tired, it reached the end, believe me"})
+  // I though that I had to do magic to solve this problem, but turns out mongoDB is beautiful <3
+  const goonts = await Goont.find({author:userId, isComment:false}, {_id:false, likes:false, isComment:false, isEdited:false, __v:false})
+  .populate({
+    path:'author',
+    select: 'username fullname profilePicture -_id'
+  });
+
+  return res.status(200).json({msg:"User goonts sent", goonts:goonts})
 }
 
-// GET PROFILE GOONTS
+// GET GOONT REPLIES
 // Gets every goont that is a reply to a goont (Goonts which parent goont is the received goontId)
 export const getGoontReplies = async (req: Request, res: Response): Promise<Response> =>{
   const authorization: string | undefined = req.headers?.authorization;
   const userId = extractId(authorization);
+
+  if(!req.body.goontId){
+    return res.status(400).json({msg: "Please. Send the goontId"})
+  }
 
   const user = await User.findOne({_id: userId})
   if(!user){
     return res.status(400).json({msg: 'The user does not exist'});
   }
 
+  const goont = await Goont.findOne({_id: req.body.goontId});
+  if(!goont){
+    return res.status(404).json({msg: 'Goont not found!'})
+  }
 
+  const replyGoonts = await Goont.find({parentGoont:req.body.goontId}, {_id:false, likes:false, isComment:false, isEdited:false, __v:false})
+  .populate({
+    path: 'author',
+    select: 'username fullname profilePicture -_id'
+  });
 
-  return res.status(200).json({msg:"I'm tired, it reached the end, believe me"})
+  return res.status(200).json({msg:"Reply goonts sent", replyGoonts:replyGoonts})
 }

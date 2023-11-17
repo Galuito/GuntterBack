@@ -2,9 +2,9 @@
 import {Router} from 'express';
 const router = Router();
 
-import { checkUsername, deleteUser, followUser, getUserData, modifyUser, modifyUserPassword, testerController, unfollowUser } from '../controllers/user.controller';
+import { checkUsername, deleteUser, followUser, fuzzySearchUsers, getUserData, modifyUser, modifyUserPassword, testerController, unfollowUser } from '../controllers/user.controller';
 import passport from 'passport';
-import { createGoont, createReply, deleteGoont, likeGoont, modifyContent, unlikeGoont } from '../controllers/goont.controller';
+import { createGoont, createReply, deleteGoont, getAllGoonts, getFeed, getGoontReplies, getUserGoonts, likeGoont, modifyContent, unlikeGoont } from '../controllers/goont.controller';
 
 // Use this to test things sent and received
 router.post('/testerroute', passport.authenticate('jwt', {session: false}), testerController);
@@ -22,6 +22,7 @@ router.post('/checkusername', passport.authenticate('jwt', {session: false}), ch
 router.post('/getuserdata', passport.authenticate('jwt', {session: false}), getUserData);
 router.put('/followuser', passport.authenticate('jwt', {session: false}), followUser);
 router.put('/unfollowuser', passport.authenticate('jwt', {session: false}), unfollowUser);
+router.post('/findusers', passport.authenticate('jwt', {session: false}), fuzzySearchUsers);
 
 
 // Goont Routes
@@ -37,5 +38,11 @@ router.put('/unlikegoont', passport.authenticate('jwt', {session: false}), unlik
 
 // - DELETE ROUTES
 router.delete('/deletegoont', passport.authenticate('jwt', {session: false}), deleteGoont);
+
+// - GET ROUTES
+router.post('/getusergoonts', passport.authenticate('jwt', {session: false}), getUserGoonts)
+router.post('/getgoontreplies', passport.authenticate('jwt', {session: false}), getGoontReplies)
+router.post('/getfeed', passport.authenticate('jwt', {session: false}), getFeed)
+router.post('/getallgoonts', passport.authenticate('jwt', {session: false}), getAllGoonts)
 
 export default router;

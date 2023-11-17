@@ -3,6 +3,8 @@ import User, {IUser} from '../models/user';
 import jwt from 'jsonwebtoken';
 import config from '../config/config'
 import { extractId } from './user.idExtractor';
+import * as fuzzy from 'fuzzy';
+
 
 
 // Expira en 1209600 Segundos o 14 dias
@@ -439,3 +441,25 @@ export const unfollowUser = async (req: Request, res: Response): Promise<Respons
     return res.status(500).json({msg:`Something went wrong ${error}`})
   }
 } 
+
+export const fuzzySearchUsers = async (req: Request, res: Response): Promise<Response> =>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+
+  if(!req.body.username){
+    return res.status(400).json({msg: "Please. Provide with the username to search"})
+  }
+
+  const user = await User.findOne({_id: userId});
+  if(!user){
+    return res.status(400).json({msg: 'The user does not exist'});
+  }
+
+  const allUsers = await User.find({}, 'username fullname profilePicture bio');
+  const results = fuzzy.filter(req.body.username, allUsers, { extract: user => user.username });
+
+    // Extract matched users from the fuzzy matching results
+  const matchedUsers = results.map(result => result.original);
+
+  return res.status(200).json({msg:"Users sent", users:matchedUsers});
+}

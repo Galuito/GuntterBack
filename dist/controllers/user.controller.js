@@ -321,10 +321,13 @@ const getUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     // Checks the authorization header and manages if it were to be undefined
     const authorization = (_d = req.headers) === null || _d === void 0 ? void 0 : _d.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
+    if (!req.body.userId) {
+        return res.status(400).json({ msg: "Please. Provide with the desired userId" });
+    }
     try {
         // If there is an authorization header and it passed the verification.
         if (userId) {
-            const user = yield user_1.default.findOne({ _id: userId });
+            const user = yield user_1.default.findOne({ _id: req.body.userId });
             if (!user) {
                 return res.status(400).json({ msg: 'The user does not exist' });
             }
@@ -332,11 +335,12 @@ const getUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 msg: "User data sent",
                 id: `${user._id}`,
                 username: `${user.username}`,
-                email: `${user.email}`,
                 fullname: `${user.fullname}`,
                 bio: `${user.bio}`,
                 PFP: `${user.profilePicture}`,
-                banner: `${user.bannerPicture}`
+                banner: `${user.bannerPicture}`,
+                followerAmount: `${user.followersInt}`,
+                followingAmount: `${user.followingInt}`
             });
         }
         else {

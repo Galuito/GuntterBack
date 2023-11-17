@@ -310,10 +310,14 @@ export const getUserData = async (req: Request, res: Response): Promise<Response
     const authorization: string | undefined = req.headers?.authorization;
     const userId = extractId(authorization);
 
+    if(!req.body.userId){
+      return res.status(400).json({msg: "Please. Provide with the desired userId"})
+    }
+
     try{
       // If there is an authorization header and it passed the verification.
       if (userId) {
-          const user = await User.findOne({_id: userId})
+          const user = await User.findOne({_id: req.body.userId})
           if(!user){
             return res.status(400).json({msg: 'The user does not exist'});
           }
@@ -323,11 +327,12 @@ export const getUserData = async (req: Request, res: Response): Promise<Response
               msg: "User data sent", 
               id:`${user._id}`,
               username:`${user.username}`,
-              email:`${user.email}`,
               fullname:`${user.fullname}`,
               bio:`${user.bio}`,
               PFP:`${user.profilePicture}`,
-              banner:`${user.bannerPicture}`
+              banner:`${user.bannerPicture}`,
+              followerAmount:`${user.followersInt}`,
+              followingAmount:`${user.followingInt}`
             });
         
       }

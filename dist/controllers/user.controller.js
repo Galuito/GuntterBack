@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fuzzySearchUsers = exports.unfollowUser = exports.followUser = exports.getUserData = exports.modifyUserPassword = exports.modifyUser = exports.checkUsername = exports.deleteUser = exports.signIn = exports.signUp = exports.testerController = void 0;
+exports.fuzzySearchUsers = exports.unfollowUser = exports.followUser = exports.getUserData = exports.modifyUserPassword = exports.changeBanner = exports.changeProfilePicture = exports.modifyUser = exports.checkUsername = exports.deleteUser = exports.signIn = exports.signUp = exports.testerController = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../config/config"));
@@ -275,6 +275,48 @@ const modifyUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.modifyUser = modifyUser;
+// UPDATE PFP
+const changeProfilePicture = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
+    const authorization = (_c = req.headers) === null || _c === void 0 ? void 0 : _c.authorization;
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
+    if (!req.body.newProfilePicture) {
+        return res.status(400).json({ msg: "Please. Provide with the profile picture link" });
+    }
+    if (userId) {
+        const user = yield user_1.default.findOne({ _id: userId });
+        if (!user) {
+            return res.status(400).json({ msg: 'The user does not exist' });
+        }
+        yield user.modifyPFP(req.body.newProfilePicture);
+        return res.status(200).json({ msg: "Profile Picture modified correctly" });
+    }
+    else {
+        return res.status(400).json({ msg: "Error parsing the JWT" });
+    }
+});
+exports.changeProfilePicture = changeProfilePicture;
+// UPDATE BANNER
+const changeBanner = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
+    const authorization = (_d = req.headers) === null || _d === void 0 ? void 0 : _d.authorization;
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
+    if (!req.body.newBanner) {
+        return res.status(400).json({ msg: "Please. Provide with the banner link" });
+    }
+    if (userId) {
+        const user = yield user_1.default.findOne({ _id: userId });
+        if (!user) {
+            return res.status(400).json({ msg: 'The user does not exist' });
+        }
+        yield user.modifyBanner(req.body.newBanner);
+        return res.status(200).json({ msg: "Banner modified correctly" });
+    }
+    else {
+        return res.status(400).json({ msg: "Error parsing the JWT" });
+    }
+});
+exports.changeBanner = changeBanner;
 // UPDATE USER PASSWORD
 /**
  *
@@ -282,9 +324,9 @@ exports.modifyUser = modifyUser;
  * req.body.newPassword
  */
 const modifyUserPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
+    var _e;
     // Checks the authorization header and manages if it were to be undefined
-    const authorization = (_c = req.headers) === null || _c === void 0 ? void 0 : _c.authorization;
+    const authorization = (_e = req.headers) === null || _e === void 0 ? void 0 : _e.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.newPassword) {
         return res.status(400).json({ msg: "Please pass the req.body.newPassword" });
@@ -317,9 +359,9 @@ const modifyUserPassword = (req, res) => __awaiter(void 0, void 0, void 0, funct
 exports.modifyUserPassword = modifyUserPassword;
 // READ USER DATA
 const getUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d;
+    var _f;
     // Checks the authorization header and manages if it were to be undefined
-    const authorization = (_d = req.headers) === null || _d === void 0 ? void 0 : _d.authorization;
+    const authorization = (_f = req.headers) === null || _f === void 0 ? void 0 : _f.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.userId) {
         return res.status(400).json({ msg: "Please. Provide with the desired userId" });
@@ -363,8 +405,8 @@ exports.getUserData = getUserData;
  * targetUser ID, before doing anything, it checks if both users exist.
  */
 const followUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _e;
-    const authorization = (_e = req.headers) === null || _e === void 0 ? void 0 : _e.authorization;
+    var _g;
+    const authorization = (_g = req.headers) === null || _g === void 0 ? void 0 : _g.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.targetUser) {
         return res.status(400).json({ msg: "Please. Send the target user's ID" });
@@ -405,8 +447,8 @@ exports.followUser = followUser;
  * arrays.
  */
 const unfollowUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f;
-    const authorization = (_f = req.headers) === null || _f === void 0 ? void 0 : _f.authorization;
+    var _h;
+    const authorization = (_h = req.headers) === null || _h === void 0 ? void 0 : _h.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.targetUser) {
         return res.status(400).json({ msg: "Please. Send the target user's ID" });
@@ -442,8 +484,8 @@ const unfollowUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.unfollowUser = unfollowUser;
 const fuzzySearchUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g;
-    const authorization = (_g = req.headers) === null || _g === void 0 ? void 0 : _g.authorization;
+    var _j;
+    const authorization = (_j = req.headers) === null || _j === void 0 ? void 0 : _j.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.username) {
         return res.status(400).json({ msg: "Please. Provide with the username to search" });

@@ -17,6 +17,8 @@ router.delete('/deleteuser', passport_1.default.authenticate('jwt', { session: f
 // - MODIFY ROUTES
 router.put('/modifyuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.modifyUser);
 router.put('/modifyuserpassword', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.modifyUserPassword);
+router.put('/changeprofilepicture', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.changeProfilePicture);
+router.put('/changebanner', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.changeBanner);
 // - GET ROUTES
 router.post('/checkusername', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.checkUsername);
 router.post('/getuserdata', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.getUserData);

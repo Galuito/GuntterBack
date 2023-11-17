@@ -2,7 +2,7 @@
 import {Router} from 'express';
 const router = Router();
 
-import { checkUsername, deleteUser, followUser, fuzzySearchUsers, getUserData, modifyUser, modifyUserPassword, testerController, unfollowUser } from '../controllers/user.controller';
+import { changeBanner, changeProfilePicture, checkUsername, deleteUser, followUser, fuzzySearchUsers, getUserData, modifyUser, modifyUserPassword, testerController, unfollowUser } from '../controllers/user.controller';
 import passport from 'passport';
 import { createGoont, createReply, deleteGoont, getAllGoonts, getFeed, getGoontReplies, getUserGoonts, likeGoont, modifyContent, unlikeGoont } from '../controllers/goont.controller';
 
@@ -16,6 +16,8 @@ router.delete('/deleteuser', passport.authenticate('jwt', {session: false}), del
 // - MODIFY ROUTES
 router.put('/modifyuser', passport.authenticate('jwt', {session: false}), modifyUser);
 router.put('/modifyuserpassword', passport.authenticate('jwt', {session: false}), modifyUserPassword);
+router.put('/changeprofilepicture', passport.authenticate('jwt', {session: false}), changeProfilePicture);
+router.put('/changebanner', passport.authenticate('jwt', {session: false}), changeBanner);
 
 // - GET ROUTES
 router.post('/checkusername', passport.authenticate('jwt', {session: false}), checkUsername);

@@ -266,6 +266,50 @@ export const modifyUser = async (req: Request, res: Response): Promise<Response>
   }
 }
 
+// UPDATE PFP
+export const changeProfilePicture = async (req: Request, res: Response): Promise<Response> =>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+
+  if(!req.body.newProfilePicture){
+    return res.status(400).json({msg:"Please. Provide with the profile picture link"})
+  }
+
+  if(userId){
+    const user = await User.findOne({_id: userId})
+    if(!user){
+      return res.status(400).json({msg: 'The user does not exist'});
+    }
+    await user.modifyPFP(req.body.newProfilePicture);
+    return res.status(200).json({msg: "Profile Picture modified correctly"})
+
+  }else{
+    return res.status(400).json({msg: "Error parsing the JWT"})
+  }
+}
+
+// UPDATE BANNER
+export const changeBanner = async (req: Request, res: Response): Promise<Response> =>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+
+  if(!req.body.newBanner){
+    return res.status(400).json({msg:"Please. Provide with the banner link"})
+  }
+
+  if(userId){
+    const user = await User.findOne({_id: userId})
+    if(!user){
+      return res.status(400).json({msg: 'The user does not exist'});
+    }
+    await user.modifyBanner(req.body.newBanner);
+    return res.status(200).json({msg: "Banner modified correctly"})
+
+  }else{
+    return res.status(400).json({msg: "Error parsing the JWT"})
+  }
+}
+
 // UPDATE USER PASSWORD
 /**
  * 

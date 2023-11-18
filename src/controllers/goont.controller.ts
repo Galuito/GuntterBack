@@ -241,10 +241,10 @@ export const getAllGoonts = async (req: Request, res: Response): Promise<Respons
     return res.status(400).json({msg: 'The user does not exist'});
   }
 
-  const allGoonts = await Goont.find({isComment:false}, {_id:false, likes:false, isComment:false, isEdited:false, __v:false})
+  const allGoonts = await Goont.find({isComment:false}, {likes:false, isComment:false, isEdited:false, __v:false})
   .populate({
     path:'author',
-    select: 'username fullname profilePicture -_id'
+    select: 'username fullname profilePicture _id'
   })
 
   return res.status(200).json({msg:"All goonts sent", allGoonts:allGoonts})
@@ -272,10 +272,10 @@ export const getFeed = async (req: Request, res: Response): Promise<Response> =>
   }
 
   const followingList = [...user.following, userId];
-  const feedGoonts = await Goont.find({author: {$in: followingList}, isComment:false}, {_id:false, likes:false, isComment:false, isEdited:false, __v:false})
+  const feedGoonts = await Goont.find({author: {$in: followingList}, isComment:false}, { likes:false, isComment:false, isEdited:false, __v:false})
   .populate({
     path:'author',
-    select: 'username fullname profilePicture -_id'
+    select: 'username fullname profilePicture _id'
   })
   return res.status(200).json({msg:"Feed goonts sent", feedGoonts:feedGoonts});
 }
@@ -296,10 +296,10 @@ export const getUserGoonts = async (req: Request, res: Response): Promise<Respon
   }
 
   // I though that I had to do magic to solve this problem, but turns out mongoDB is beautiful <3
-  const goonts = await Goont.find({author:userId, isComment:false}, {_id:false, likes:false, isComment:false, isEdited:false, __v:false})
+  const goonts = await Goont.find({author:userId, isComment:false}, { likes:false, isComment:false, isEdited:false, __v:false})
   .populate({
     path:'author',
-    select: 'username fullname profilePicture -_id'
+    select: 'username fullname profilePicture _id'
   });
 
   return res.status(200).json({msg:"User goonts sent", goonts:goonts})
@@ -325,10 +325,10 @@ export const getGoontReplies = async (req: Request, res: Response): Promise<Resp
     return res.status(404).json({msg: 'Goont not found!'})
   }
 
-  const replyGoonts = await Goont.find({parentGoont:req.body.goontId}, {_id:false, likes:false, isComment:false, isEdited:false, __v:false})
+  const replyGoonts = await Goont.find({parentGoont:req.body.goontId}, { likes:false, isComment:false, isEdited:false, __v:false})
   .populate({
     path: 'author',
-    select: 'username fullname profilePicture -_id'
+    select: 'username fullname profilePicture _id'
   });
 
   return res.status(200).json({msg:"Reply goonts sent", replyGoonts:replyGoonts})

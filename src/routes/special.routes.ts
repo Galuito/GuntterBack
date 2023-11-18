@@ -2,7 +2,7 @@
 import {Router} from 'express';
 const router = Router();
 
-import { changeBanner, changeProfilePicture, checkUsername, deleteUser, followUser, fuzzySearchUsers, getUserData, modifyUser, modifyUserPassword, testerController, unfollowUser } from '../controllers/user.controller';
+import { changeBanner, changeProfilePicture, checkFollowing, checkUsername, deleteUser, followUser, fuzzySearchUsers, getFollowers, getFollowing, getUserData, modifyUser, modifyUserPassword, testerController, unfollowUser } from '../controllers/user.controller';
 import passport from 'passport';
 import { createGoont, createReply, deleteGoont, getAllGoonts, getFeed, getGoontReplies, getUserGoonts, likeGoont, modifyContent, unlikeGoont } from '../controllers/goont.controller';
 
@@ -22,7 +22,10 @@ router.put('/changebanner', passport.authenticate('jwt', {session: false}), chan
 // - GET ROUTES
 router.post('/checkusername', passport.authenticate('jwt', {session: false}), checkUsername);
 router.post('/getuserdata', passport.authenticate('jwt', {session: false}), getUserData);
+router.post('/checkfollowing', passport.authenticate('jwt', {session: false}), checkFollowing);
 router.put('/followuser', passport.authenticate('jwt', {session: false}), followUser);
+router.post('/getfollowing', passport.authenticate('jwt', {session: false}), getFollowing);
+router.post('/getfollowers', passport.authenticate('jwt', {session: false}), getFollowers);
 router.put('/unfollowuser', passport.authenticate('jwt', {session: false}), unfollowUser);
 router.post('/findusers', passport.authenticate('jwt', {session: false}), fuzzySearchUsers);
 

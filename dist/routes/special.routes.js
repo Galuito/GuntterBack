@@ -22,7 +22,10 @@ router.put('/changebanner', passport_1.default.authenticate('jwt', { session: fa
 // - GET ROUTES
 router.post('/checkusername', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.checkUsername);
 router.post('/getuserdata', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.getUserData);
+router.post('/checkfollowing', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.checkFollowing);
 router.put('/followuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.followUser);
+router.post('/getfollowing', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.getFollowing);
+router.post('/getfollowers', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.getFollowers);
 router.put('/unfollowuser', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.unfollowUser);
 router.post('/findusers', passport_1.default.authenticate('jwt', { session: false }), user_controller_1.fuzzySearchUsers);
 // Goont Routes

@@ -35,8 +35,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fuzzySearchUsers = exports.unfollowUser = exports.followUser = exports.getUserData = exports.modifyUserPassword = exports.changeBanner = exports.changeProfilePicture = exports.modifyUser = exports.checkUsername = exports.deleteUser = exports.signIn = exports.signUp = exports.testerController = void 0;
+exports.fuzzySearchUsers = exports.unfollowUser = exports.followUser = exports.getFollowers = exports.getFollowing = exports.checkFollowing = exports.getUserData = exports.modifyUserPassword = exports.changeBanner = exports.changeProfilePicture = exports.modifyUser = exports.checkUsername = exports.deleteUser = exports.signIn = exports.signUp = exports.testerController = void 0;
 const user_1 = __importDefault(require("../models/user"));
+const goont_1 = __importDefault(require("../models/goont"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../config/config"));
 const user_idExtractor_1 = require("./user.idExtractor");
@@ -165,7 +166,8 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             const isMatch = yield user.comparePassword(req.body.password);
             if (isMatch) {
                 yield user_1.default.deleteOne({ _id: userId });
-                return res.status(200).json({ msg: `Deleted User with username: ${user.username}` });
+                yield goont_1.default.updateMany({ likes: userId }, { $pull: { likes: userId }, $inc: { likesInt: -1 } });
+                return res.status(200).json({ msg: `Deleted User with username: ${user.username} and removed its likes` });
             }
             else {
                 return res.status(400).json({ msg: "Password did not match" });
@@ -396,6 +398,69 @@ const getUserData = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getUserData = getUserData;
+// CHECK IF USER FOLLOWS TARGET USER
+const checkFollowing = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _g;
+    const authorization = (_g = req.headers) === null || _g === void 0 ? void 0 : _g.authorization;
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
+    if (!req.body.targetUser) {
+        return res.status(400).json({ msg: "Please. Send the target user's ID" });
+    }
+    if (userId) {
+        const user = yield user_1.default.findOne({ _id: userId });
+        if (!user) {
+            return res.status(400).json({ msg: 'The user does not exist' });
+        }
+        const targetUser = yield user_1.default.findOne({ _id: req.body.targetUser });
+        if (!targetUser) {
+            return res.status(400).json({ msg: 'The target user does not exist' });
+        }
+        const isFollowing = yield user.isFollowing(req.body.targetUser);
+        if (isFollowing) {
+            return res.status(200).json({ msg: 'The user follows the target user', isFollowing: true });
+        }
+        return res.status(200).json({ msg: 'The user does not follow the target user', isFollowing: false });
+    }
+    else {
+        console.log("User Id is undefined");
+        return res.status(400).json({ msg: "A problem arised with the JWT" });
+    }
+});
+exports.checkFollowing = checkFollowing;
+// GET FOLLOWING
+/**
+ * Returns an array with the information of the users that the user follows
+ */
+const getFollowing = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _h;
+    const authorization = (_h = req.headers) === null || _h === void 0 ? void 0 : _h.authorization;
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
+    const user = yield user_1.default.findOne({ _id: userId });
+    if (!user) {
+        return res.status(400).json({ msg: 'The user does not exist' });
+    }
+    const followingList = user.following;
+    const followingUsers = yield user_1.default.find({ _id: { $in: followingList } }, { username: true, fullname: true, bio: true, profilePicture: true });
+    return res.status(200).json({ msg: "Following Users Sent", followingUsers: followingUsers });
+});
+exports.getFollowing = getFollowing;
+//GET FOLLOWERS
+/**
+ * Returns an array with the information of the users that follow the user
+ */
+const getFollowers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _j;
+    const authorization = (_j = req.headers) === null || _j === void 0 ? void 0 : _j.authorization;
+    const userId = (0, user_idExtractor_1.extractId)(authorization);
+    const user = yield user_1.default.findOne({ _id: userId });
+    if (!user) {
+        return res.status(400).json({ msg: 'The user does not exist' });
+    }
+    const followersList = user.followers;
+    const followerUsers = yield user_1.default.find({ _id: { $in: followersList } }, { username: true, fullname: true, bio: true, profilePicture: true });
+    return res.status(200).json({ msg: "Following Users Sent", followerUsers: followerUsers });
+});
+exports.getFollowers = getFollowers;
 // FOLLOW USER
 /**
  * This function will be in charge of adding a user to its following array, it will also add the
@@ -405,8 +470,8 @@ exports.getUserData = getUserData;
  * targetUser ID, before doing anything, it checks if both users exist.
  */
 const followUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g;
-    const authorization = (_g = req.headers) === null || _g === void 0 ? void 0 : _g.authorization;
+    var _k;
+    const authorization = (_k = req.headers) === null || _k === void 0 ? void 0 : _k.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.targetUser) {
         return res.status(400).json({ msg: "Please. Send the target user's ID" });
@@ -447,8 +512,8 @@ exports.followUser = followUser;
  * arrays.
  */
 const unfollowUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _h;
-    const authorization = (_h = req.headers) === null || _h === void 0 ? void 0 : _h.authorization;
+    var _l;
+    const authorization = (_l = req.headers) === null || _l === void 0 ? void 0 : _l.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.targetUser) {
         return res.status(400).json({ msg: "Please. Send the target user's ID" });
@@ -484,8 +549,8 @@ const unfollowUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.unfollowUser = unfollowUser;
 const fuzzySearchUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _j;
-    const authorization = (_j = req.headers) === null || _j === void 0 ? void 0 : _j.authorization;
+    var _m;
+    const authorization = (_m = req.headers) === null || _m === void 0 ? void 0 : _m.authorization;
     const userId = (0, user_idExtractor_1.extractId)(authorization);
     if (!req.body.username) {
         return res.status(400).json({ msg: "Please. Provide with the username to search" });

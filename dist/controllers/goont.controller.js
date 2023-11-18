@@ -210,10 +210,10 @@ const getAllGoonts = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     if (!user) {
         return res.status(400).json({ msg: 'The user does not exist' });
     }
-    const allGoonts = yield goont_1.default.find({ isComment: false }, { _id: false, likes: false, isComment: false, isEdited: false, __v: false })
+    const allGoonts = yield goont_1.default.find({ isComment: false }, { likes: false, isComment: false, isEdited: false, __v: false })
         .populate({
         path: 'author',
-        select: 'username fullname profilePicture -_id'
+        select: 'username fullname profilePicture _id'
     });
     return res.status(200).json({ msg: "All goonts sent", allGoonts: allGoonts });
 });
@@ -239,10 +239,10 @@ const getFeed = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         return res.status(400).json({ msg: 'The user does not exist' });
     }
     const followingList = [...user.following, userId];
-    const feedGoonts = yield goont_1.default.find({ author: { $in: followingList }, isComment: false }, { _id: false, likes: false, isComment: false, isEdited: false, __v: false })
+    const feedGoonts = yield goont_1.default.find({ author: { $in: followingList }, isComment: false }, { likes: false, isComment: false, isEdited: false, __v: false })
         .populate({
         path: 'author',
-        select: 'username fullname profilePicture -_id'
+        select: 'username fullname profilePicture _id'
     });
     return res.status(200).json({ msg: "Feed goonts sent", feedGoonts: feedGoonts });
 });
@@ -262,10 +262,10 @@ const getUserGoonts = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         return res.status(400).json({ msg: 'The user does not exist' });
     }
     // I though that I had to do magic to solve this problem, but turns out mongoDB is beautiful <3
-    const goonts = yield goont_1.default.find({ author: userId, isComment: false }, { _id: false, likes: false, isComment: false, isEdited: false, __v: false })
+    const goonts = yield goont_1.default.find({ author: userId, isComment: false }, { likes: false, isComment: false, isEdited: false, __v: false })
         .populate({
         path: 'author',
-        select: 'username fullname profilePicture -_id'
+        select: 'username fullname profilePicture _id'
     });
     return res.status(200).json({ msg: "User goonts sent", goonts: goonts });
 });
@@ -287,10 +287,10 @@ const getGoontReplies = (req, res) => __awaiter(void 0, void 0, void 0, function
     if (!goont) {
         return res.status(404).json({ msg: 'Goont not found!' });
     }
-    const replyGoonts = yield goont_1.default.find({ parentGoont: req.body.goontId }, { _id: false, likes: false, isComment: false, isEdited: false, __v: false })
+    const replyGoonts = yield goont_1.default.find({ parentGoont: req.body.goontId }, { likes: false, isComment: false, isEdited: false, __v: false })
         .populate({
         path: 'author',
-        select: 'username fullname profilePicture -_id'
+        select: 'username fullname profilePicture _id'
     });
     return res.status(200).json({ msg: "Reply goonts sent", replyGoonts: replyGoonts });
 });

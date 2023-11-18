@@ -1,5 +1,6 @@
 import {Request, Response} from 'express'
 import User, {IUser} from '../models/user';
+import Goont from "../models/goont";
 import jwt from 'jsonwebtoken';
 import config from '../config/config'
 import { extractId } from './user.idExtractor';
@@ -147,7 +148,8 @@ export const deleteUser = async (req: Request, res: Response): Promise<Response>
 
       if(isMatch){
         await User.deleteOne({_id: userId})
-        return res.status(200).json({msg:`Deleted User with username: ${user.username}`});
+        await Goont.updateMany({likes: userId}, {$pull: {likes: userId}, $inc: {likesInt: -1}});
+        return res.status(200).json({msg:`Deleted User with username: ${user.username} and removed its likes`});
       }
       else{
         return res.status(400).json({msg:"Password did not match"});
@@ -389,6 +391,73 @@ export const getUserData = async (req: Request, res: Response): Promise<Response
       console.error('Error decoding JWT:', error)
       return res.status(500).json({msg:`Something went wrong ${error}`})
     }
+}
+
+// CHECK IF USER FOLLOWS TARGET USER
+export const checkFollowing = async (req: Request, res: Response): Promise<Response>=>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+
+  if(!req.body.targetUser){
+    return res.status(400).json({msg:"Please. Send the target user's ID"})
+  }
+
+  if (userId) {
+    const user = await User.findOne({_id: userId});
+    if(!user){
+      return res.status(400).json({msg: 'The user does not exist'});
+    }
+    
+    const targetUser = await User.findOne({_id: req.body.targetUser});
+    if(!targetUser){
+      return res.status(400).json({msg: 'The target user does not exist'});
+    }
+    
+    const isFollowing = await user.isFollowing(req.body.targetUser);
+    if(isFollowing){
+      return res.status(200).json({msg: 'The user follows the target user', isFollowing:true})
+    }
+
+    return res.status(200).json({msg: 'The user does not follow the target user', isFollowing:false})
+  
+  }
+  else {
+    console.log("User Id is undefined");
+    return res.status(400).json({msg:"A problem arised with the JWT"});
+  }
+}
+
+// GET FOLLOWING
+/**
+ * Returns an array with the information of the users that the user follows
+ */
+export const getFollowing = async (req: Request, res: Response): Promise<Response>=>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+  const user = await User.findOne({_id: userId});
+  if(!user){
+    return res.status(400).json({msg: 'The user does not exist'});
+  }
+
+  const followingList = user.following;
+  const followingUsers = await User.find({_id: {$in: followingList}}, { username:true, fullname:true, bio:true, profilePicture:true})
+  return res.status(200).json({msg:"Following Users Sent", followingUsers:followingUsers});
+}
+
+//GET FOLLOWERS
+/**
+ * Returns an array with the information of the users that follow the user
+ */
+export const getFollowers = async (req: Request, res: Response): Promise<Response>=>{
+  const authorization: string | undefined = req.headers?.authorization;
+  const userId = extractId(authorization);
+  const user = await User.findOne({_id: userId});
+  if(!user){
+    return res.status(400).json({msg: 'The user does not exist'});
+  }
+  const followersList = user.followers;
+  const followerUsers = await User.find({_id: {$in: followersList}}, { username:true, fullname:true, bio:true, profilePicture:true})
+  return res.status(200).json({msg:"Following Users Sent", followerUsers:followerUsers});
 }
 
 // FOLLOW USER

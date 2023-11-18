@@ -439,7 +439,14 @@ const getFollowing = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     if (!user) {
         return res.status(400).json({ msg: 'The user does not exist' });
     }
-    const followingList = user.following;
+    if (!req.body.targetUser) {
+        return res.status(400).json({ msg: "Please. Provide with the targetUser Id" });
+    }
+    const targetUser = yield user_1.default.findOne({ _id: req.body.targetUser });
+    if (!targetUser) {
+        return res.status(400).json({ msg: 'The user does not exist' });
+    }
+    const followingList = targetUser.following;
     const followingUsers = yield user_1.default.find({ _id: { $in: followingList } }, { username: true, fullname: true, bio: true, profilePicture: true });
     return res.status(200).json({ msg: "Following Users Sent", followingUsers: followingUsers });
 });
@@ -456,7 +463,14 @@ const getFollowers = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     if (!user) {
         return res.status(400).json({ msg: 'The user does not exist' });
     }
-    const followersList = user.followers;
+    if (!req.body.targetUser) {
+        return res.status(400).json({ msg: "Please. Provide with the targetUser Id" });
+    }
+    const targetUser = yield user_1.default.findOne({ _id: req.body.targetUser });
+    if (!targetUser) {
+        return res.status(400).json({ msg: 'The user does not exist' });
+    }
+    const followersList = targetUser.followers;
     const followerUsers = yield user_1.default.find({ _id: { $in: followersList } }, { username: true, fullname: true, bio: true, profilePicture: true });
     return res.status(200).json({ msg: "Following Users Sent", followerUsers: followerUsers });
 });

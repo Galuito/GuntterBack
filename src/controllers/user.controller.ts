@@ -439,7 +439,16 @@ export const getFollowing = async (req: Request, res: Response): Promise<Respons
     return res.status(400).json({msg: 'The user does not exist'});
   }
 
-  const followingList = user.following;
+  if(!req.body.targetUser){
+    return res.status(400).json({msg: "Please. Provide with the targetUser Id"});
+  }
+
+  const targetUser = await User.findOne({_id: req.body.targetUser});
+  if(!targetUser){
+    return res.status(400).json({msg: 'The user does not exist'});
+  }
+
+  const followingList = targetUser.following;
   const followingUsers = await User.find({_id: {$in: followingList}}, { username:true, fullname:true, bio:true, profilePicture:true})
   return res.status(200).json({msg:"Following Users Sent", followingUsers:followingUsers});
 }
@@ -455,7 +464,17 @@ export const getFollowers = async (req: Request, res: Response): Promise<Respons
   if(!user){
     return res.status(400).json({msg: 'The user does not exist'});
   }
-  const followersList = user.followers;
+
+  if(!req.body.targetUser){
+    return res.status(400).json({msg: "Please. Provide with the targetUser Id"});
+  }
+
+  const targetUser = await User.findOne({_id: req.body.targetUser});
+  if(!targetUser){
+    return res.status(400).json({msg: 'The user does not exist'});
+  }
+
+  const followersList = targetUser.followers;
   const followerUsers = await User.find({_id: {$in: followersList}}, { username:true, fullname:true, bio:true, profilePicture:true})
   return res.status(200).json({msg:"Following Users Sent", followerUsers:followerUsers});
 }
